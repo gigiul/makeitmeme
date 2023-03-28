@@ -10,11 +10,15 @@ var new_game = true;
 var playersReady = 0;
 const skipBaseLimits = {};
 const ready = {};
-
+var clientID;
 
 
 wss.on('connection', function connection(ws) {
-    numberOfClients++;
+    clientID = ws._socket.remotePort;
+    ready[clientID] = false;
+    if (ready[clientID] === undefined) {
+        numberOfClients++;
+    }
     //send a random base to client
     console.log("Ready: " + playersReady + " / " + numberOfClients);
 
@@ -26,7 +30,7 @@ wss.on('connection', function connection(ws) {
             dataParsed = JSON.parse(data);
             switch (dataParsed.type) {
                 case "READY":
-                    const clientID = ws._socket.remotePort;
+                    clientID = ws._socket.remotePort;
                     if (!ready[clientID]) {
                         ready[clientID] = true;
                         playersReady++;
@@ -39,25 +43,37 @@ wss.on('connection', function connection(ws) {
                         sendRandomBase(wss);
                     }
                     break;
+                case "NOT_READY":
+                    clientID = ws._socket.remotePort;
+                    if (ready[clientID]) {
+                        ready[clientID] = false;
+                        playersReady--;
+                    }
+                    if (!ready[clientID]) {
+                        console.log("Ready: " + playersReady + " / " + numberOfClients);
+                    }
+                    break;
                 case "SKIP_BASE":
                     if (playersReady === numberOfClients) {
                         const clientID = ws._socket.remotePort;
                         console.log("Client " + clientID + " skipped base")
                         if (!skipBaseLimits[clientID] && skipBaseLimits[clientID] !== 0) {
-                            skipBaseLimits[clientID] = 2;
+                            skipBaseLimits[clientID] = 3;
                         }
                         if (skipBaseLimits[clientID] > 0) {
                             console.log(skipBaseLimits[clientID])
                             skipBaseLimits[clientID]--;
+                            sendSingleClient(ws, "SKIP_LEFT", "You have " + skipBaseLimits[clientID] + " skips left");
                             skipBase(ws);
                         } else {
-                            sendWss("SKIP_LIMIT", "You have reached the limit of skips");
+                            sendSingleClient(ws, "SKIP_LIMIT", "You have reached the limit of skips");
                         }
                     }
                     break;
                 case "MEME_DONE":
                     memeReceived++;
                     let readData = fs.readFileSync('./receivedMeme.json', 'utf8');
+                    console.log(dataParsed.payload)
                     readData = JSON.parse(readData);
                     readData.push(dataParsed.payload);
                     storeMeme(readData);
@@ -78,6 +94,15 @@ wss.on('connection', function connection(ws) {
     });
 
     ws.on('error', console.error);
+
+    ws.on('close', function close() {
+        console.log('disconnected');
+        numberOfClients = wss.clients.size;
+        if (playersReady > 0) {
+            playersReady--;
+        }
+        console.log("Ready: " + playersReady + " / " + numberOfClients);
+    });
 });
 
 function skipBase(ws) {
@@ -98,15 +123,27 @@ function sendRandomBase(wss) {
         obj.type = "START_GAME";
         obj.payload = randomBase;
         client.send(JSON.stringify(obj));
+        initCountdown();
     });
+}
+
+function initCountdown() {
+    let counter = 10;
+    const intervalId = setInterval(() => {
+      counter--;
+    sendWss("COUNTDOWN", counter);
+      if (counter === 0) {
+        clearInterval(intervalId);
+      }
+    }, 1000);
 }
 
 function voteMeme() {
     let readData = fs.readFileSync('./receivedMeme.json', 'utf8');
     sendWss("VOTE", readData);
     memeReceived = 0;
-    cleanReceivedMeme();
-
+/*     cleanReceivedMeme();
+ */
 }
 
 function cleanReceivedMeme() {
@@ -151,4 +188,11 @@ function sendWss(type, data) {
     obj.type = type;
     obj.payload = data;
     wss.broadcast(JSON.stringify(obj));
+}
+
+function sendSingleClient(ws, type, data) {
+    let obj = {};
+    obj.type = type;
+    obj.payload = data;
+    ws.send(JSON.stringify(obj));
 }
