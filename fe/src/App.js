@@ -11,6 +11,9 @@ function App() {
 
   const socketUrl = 'ws://192.168.1.131:8080';
   const [gameStart, setGameStart] = useState(false);
+  const [gameStarting, setGameStarting] = useState(1);
+  const [src, setSrc] = useState('');
+  const [numberPlayersReady, setNumberPlayersReady] = useState(0);
 
   const {
     sendMessage,
@@ -22,13 +25,23 @@ function App() {
   } = useWebSocket(socketUrl, {
     onOpen: () => console.log('opened'),
     onClose: () => sendJsonMessage({ type: "NOT_READY" }),
-    shouldReconnect: (closeEvent) => true,
-  });
+/*     shouldReconnect: (closeEvent) => true,
+ */  });
 
   useEffect(() => {
     switch (lastJsonMessage?.type) {
       case "START_GAME":
         setGameStart(true);
+        setSrc(lastJsonMessage?.payload)
+        break;
+      case "GAME_STARTS_IN":
+        setGameStarting(lastJsonMessage?.payload)
+        break;
+      case "NUMBER_PLAYERS_READY":
+        setNumberPlayersReady(lastJsonMessage?.payload)
+        break;
+      case "VOTE":
+        console.log(lastJsonMessage?.payload)
         break;
       default:
     }
@@ -39,8 +52,8 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route exact path="/"  element={!gameStart ? <Lobby sendJsonMessage={sendJsonMessage} gameStart={gameStart} /> : <Navigate to='/play'/>}/>
-          <Route exact path='/play' element={<Play lastJsonMessage={lastJsonMessage} sendJsonMessage={sendJsonMessage} />} />
+          <Route exact path="/"  element={(!gameStart || (gameStarting > 0))  ? <Lobby sendJsonMessage={sendJsonMessage} gameStart={gameStart} gameStarting={gameStarting} numberPlayersReady={numberPlayersReady} /> : <Navigate to='/play'/>}/>
+          <Route exact path='/play' element={<Play lastJsonMessage={lastJsonMessage} sendJsonMessage={sendJsonMessage} src={src}/>} />
           <Route path="*" element={<Error />} />
         </Routes>
         </BrowserRouter>

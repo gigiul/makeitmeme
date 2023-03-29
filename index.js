@@ -11,14 +11,17 @@ var playersReady = 0;
 const skipBaseLimits = {};
 const ready = {};
 var clientID;
+var lobbyCoutdown = 10;
+var skipNumber = 50;
 
 
 wss.on('connection', function connection(ws) {
     clientID = ws._socket.remotePort;
     ready[clientID] = false;
-    if (ready[clientID] === undefined) {
+    if (ready[clientID] === false) {
         numberOfClients++;
     }
+
     //send a random base to client
     console.log("Ready: " + playersReady + " / " + numberOfClients);
 
@@ -37,10 +40,15 @@ wss.on('connection', function connection(ws) {
                     }
                     if (ready[clientID]) {
                         console.log("Ready: " + playersReady + " / " + numberOfClients);
+                        sendWss("NUMBER_PLAYERS_READY", playersReady);
                     }
                     
                     if (playersReady === numberOfClients) {
-                        sendRandomBase(wss);
+                        initCountdown("GAME_STARTS_IN", lobbyCoutdown);
+                        //run sendRandomBase after 25 seconds
+                        setTimeout(() => {
+                            sendRandomBase(wss);
+                        }, lobbyCoutdown*1000);
                     }
                     break;
                 case "NOT_READY":
@@ -51,6 +59,7 @@ wss.on('connection', function connection(ws) {
                     }
                     if (!ready[clientID]) {
                         console.log("Ready: " + playersReady + " / " + numberOfClients);
+                        sendWss("NUMBER_PLAYERS_READY", playersReady);
                     }
                     break;
                 case "SKIP_BASE":
@@ -58,7 +67,7 @@ wss.on('connection', function connection(ws) {
                         const clientID = ws._socket.remotePort;
                         console.log("Client " + clientID + " skipped base")
                         if (!skipBaseLimits[clientID] && skipBaseLimits[clientID] !== 0) {
-                            skipBaseLimits[clientID] = 3;
+                            skipBaseLimits[clientID] = skipNumber;
                         }
                         if (skipBaseLimits[clientID] > 0) {
                             console.log(skipBaseLimits[clientID])
@@ -102,6 +111,7 @@ wss.on('connection', function connection(ws) {
             playersReady--;
         }
         console.log("Ready: " + playersReady + " / " + numberOfClients);
+        sendWss("NUMBER_PLAYERS_READY", playersReady);
     });
 });
 
@@ -122,16 +132,18 @@ function sendRandomBase(wss) {
         let obj = {};
         obj.type = "START_GAME";
         obj.payload = randomBase;
+        console.log("obj", obj)
         client.send(JSON.stringify(obj));
-        initCountdown();
+        initCountdown("COUNTDOWN", 30);
     });
 }
 
-function initCountdown() {
-    let counter = 10;
+function initCountdown(text, time) {
+    let counter = time;
     const intervalId = setInterval(() => {
+         console.log(counter)
       counter--;
-    sendWss("COUNTDOWN", counter);
+    sendWss(text, counter);
       if (counter === 0) {
         clearInterval(intervalId);
       }
@@ -139,6 +151,7 @@ function initCountdown() {
 }
 
 function voteMeme() {
+    console.log("Voting meme")
     let readData = fs.readFileSync('./receivedMeme.json', 'utf8');
     sendWss("VOTE", readData);
     memeReceived = 0;
