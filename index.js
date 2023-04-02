@@ -192,6 +192,7 @@ function voteMeme() {
 
 numberMemeReceived = 0;
 memeReceived = [];
+cleanReceivedMeme();
 }
 
 function cleanReceivedMeme() {
