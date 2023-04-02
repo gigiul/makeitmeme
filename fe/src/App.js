@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import Play from './components/Play';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Error from './components/ErrorPage';
+import Vote from './components/Vote';
+import Leaderboard from './components/Leaderboard';
 
 
 function App() {
@@ -14,6 +16,9 @@ function App() {
   const [gameStarting, setGameStarting] = useState(1);
   const [src, setSrc] = useState('');
   const [numberPlayersReady, setNumberPlayersReady] = useState(0);
+  const [voteMemeObj, setVoteMemeObj] = useState({});
+  const [voteMeme, setVoteMeme] = useState(false);
+  const [showScore, setShowScore] = useState(false);
 
   const {
     sendMessage,
@@ -29,6 +34,7 @@ function App() {
  */  });
 
   useEffect(() => {
+    console.log(lastJsonMessage)
     switch (lastJsonMessage?.type) {
       case "START_GAME":
         setGameStart(true);
@@ -42,6 +48,12 @@ function App() {
         break;
       case "VOTE":
         console.log(lastJsonMessage?.payload)
+        setVoteMemeObj(lastJsonMessage?.payload)
+        setVoteMeme(true);
+        break;
+      case "SCORE":
+        console.log(lastJsonMessage?.payload)
+        setShowScore(true);
         break;
       default:
     }
@@ -53,7 +65,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route exact path="/"  element={(!gameStart || (gameStarting > 0))  ? <Lobby sendJsonMessage={sendJsonMessage} gameStart={gameStart} gameStarting={gameStarting} numberPlayersReady={numberPlayersReady} /> : <Navigate to='/play'/>}/>
-          <Route exact path='/play' element={<Play lastJsonMessage={lastJsonMessage} sendJsonMessage={sendJsonMessage} src={src}/>} />
+          <Route exact path='/play' element={(!voteMeme) ? <Play lastJsonMessage={lastJsonMessage} sendJsonMessage={sendJsonMessage} src={src}/> : <Navigate to='/vote' /> } />
+          <Route exaxt path='/vote' element={ (!showScore) ? <Vote voteMemeObj={voteMemeObj} lastJsonMessage={lastJsonMessage} /> : <Leaderboard /> } />
           <Route path="*" element={<Error />} />
         </Routes>
         </BrowserRouter>

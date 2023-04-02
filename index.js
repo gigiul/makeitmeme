@@ -5,19 +5,26 @@ const fs = require('fs');
 const wss = new WebSocketServer({ port: 8080 });
 var base = [];
 var numberOfClients = 0;
-var memeReceived = 0;
+var memeReceived = [];
+var numberMemeReceived = 0;
 var new_game = true;
 var playersReady = 0;
 const skipBaseLimits = {};
 const ready = {};
 var clientID;
-var lobbyCoutdown = 10;
+
+//countdowns
+var lobbyCountdown = 3;
+var gameCountdown = 3;
+var voteCountdown = 10;
+
 var skipNumber = 50;
 
 
 wss.on('connection', function connection(ws) {
-    clientID = ws._socket.remotePort;
+    let clientID = ws._socket.remotePort;
     ready[clientID] = false;
+    memeReceived[clientID] = false;
     if (ready[clientID] === false) {
         numberOfClients++;
     }
@@ -42,13 +49,13 @@ wss.on('connection', function connection(ws) {
                         console.log("Ready: " + playersReady + " / " + numberOfClients);
                         sendWss("NUMBER_PLAYERS_READY", playersReady);
                     }
-                    
+
                     if (playersReady === numberOfClients) {
-                        initCountdown("GAME_STARTS_IN", lobbyCoutdown);
+                        initCountdown("GAME_STARTS_IN", lobbyCountdown);
                         //run sendRandomBase after 25 seconds
                         setTimeout(() => {
                             sendRandomBase(wss);
-                        }, lobbyCoutdown*1000);
+                        }, lobbyCountdown * 1000);
                     }
                     break;
                 case "NOT_READY":
@@ -80,14 +87,22 @@ wss.on('connection', function connection(ws) {
                     }
                     break;
                 case "MEME_DONE":
-                    memeReceived++;
-                    let readData = fs.readFileSync('./receivedMeme.json', 'utf8');
-                    console.log(dataParsed.payload)
-                    readData = JSON.parse(readData);
-                    readData.push(dataParsed.payload);
-                    storeMeme(readData);
-                    if (memeReceived === numberOfClients) {
-                        voteMeme();
+                    console.log("Meme done")
+                    clientID = ws._socket.remotePort;
+                    if (memeReceived[clientID] === false) {
+                        console.log("Meme received from client " + clientID)
+                        memeReceived[clientID] = true;
+                        numberMemeReceived++;
+                        let readData = fs.readFileSync('./receivedMeme.json', 'utf8');
+                        readData = JSON.parse(readData);
+                        dataParsed.payload = addClientID(clientID, dataParsed.payload);
+                        readData.push(dataParsed.payload);
+                        storeMeme(readData);
+                        console.log("meme received nummber: " + numberMemeReceived + " / " + numberOfClients + "")
+                        if (numberMemeReceived === numberOfClients) {
+                            console.log("All meme received")
+                            voteMeme();
+                        }
                     }
                     break;
                 case "UPVOTE":
@@ -115,6 +130,11 @@ wss.on('connection', function connection(ws) {
     });
 });
 
+function addClientID(clientID, payload) {
+    payload.clientID = clientID;
+    return payload;
+}
+
 function skipBase(ws) {
     //send a random base to single client
     let parsedBase = JSON.parse(base);
@@ -134,29 +154,44 @@ function sendRandomBase(wss) {
         obj.payload = randomBase;
         console.log("obj", obj)
         client.send(JSON.stringify(obj));
-        initCountdown("COUNTDOWN", 30);
+        initCountdown("COUNTDOWN", gameCountdown);
     });
 }
 
 function initCountdown(text, time) {
     let counter = time;
     const intervalId = setInterval(() => {
-         console.log(counter)
-      counter--;
-    sendWss(text, counter);
-      if (counter === 0) {
-        clearInterval(intervalId);
-      }
+        console.log(counter)
+        counter--;
+        sendWss(text, counter);
+        if (counter === 0) {
+            clearInterval(intervalId);
+        }
     }, 1000);
 }
 
 function voteMeme() {
     console.log("Voting meme")
     let readData = fs.readFileSync('./receivedMeme.json', 'utf8');
-    sendWss("VOTE", readData);
-    memeReceived = 0;
-/*     cleanReceivedMeme();
- */
+    readData = JSON.parse(readData);
+    let i = 0;
+    sendWss("VOTE", readData[i]);
+    initCountdown("COUNTDOWN", voteCountdown);
+    i++;
+    const intervalId = setInterval(() => {
+        initCountdown("COUNTDOWN", voteCountdown);
+        sendWss("VOTE", readData[i]);
+        i++;
+        if (i === readData.length) {
+            clearInterval(intervalId);
+        }
+    }, 11000);
+    setTimeout(() => {
+        sendWss("SCORE", "SCORE");
+    }, 11000 * readData.length);
+
+numberMemeReceived = 0;
+memeReceived = [];
 }
 
 function cleanReceivedMeme() {
