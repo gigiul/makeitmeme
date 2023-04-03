@@ -15,7 +15,7 @@ var clientID;
 
 //countdowns
 var lobbyCountdown = 3;
-var gameCountdown = 3;
+var gameCountdown = 30;
 var voteCountdown = 10;
 
 var skipNumber = 50;
@@ -188,7 +188,7 @@ function voteMeme() {
     }, 11000);
     setTimeout(() => {
         sendWss("SCORE", "SCORE");
-    }, 11000 * readData.length);
+    }, 110000 * readData.length);
 
 numberMemeReceived = 0;
 memeReceived = [];

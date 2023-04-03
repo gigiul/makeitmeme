@@ -11,14 +11,14 @@ import Leaderboard from './components/Leaderboard';
 
 function App() {
 
-  const socketUrl = 'ws://192.168.1.131:8080';
+  const socketUrl = 'ws://' + window.location.hostname + ':8080';
   const [gameStart, setGameStart] = useState(false);
   const [gameStarting, setGameStarting] = useState(1);
   const [src, setSrc] = useState('');
   const [numberPlayersReady, setNumberPlayersReady] = useState(0);
   const [voteMemeObj, setVoteMemeObj] = useState({});
   const [voteMeme, setVoteMeme] = useState(false);
-  const [showScore, setShowScore] = useState(true);
+  const [showScore, setShowScore] = useState(false);
 
   const {
     sendMessage,
