@@ -19,6 +19,7 @@ function App() {
   const [voteMemeObj, setVoteMemeObj] = useState({});
   const [voteMeme, setVoteMeme] = useState(false);
   const [showScore, setShowScore] = useState(false);
+  const [scoreArray, setScoreArray] = useState([]);
 
   const {
     sendMessage,
@@ -54,6 +55,7 @@ function App() {
       case "SCORE":
         console.log(lastJsonMessage?.payload)
         setShowScore(true);
+        setScoreArray(lastJsonMessage?.payload)
         break;
       default:
     }
@@ -66,7 +68,7 @@ function App() {
         <Routes>
           <Route exact path="/"  element={(!gameStart || (gameStarting > 0))  ? <Lobby sendJsonMessage={sendJsonMessage} gameStart={gameStart} gameStarting={gameStarting} numberPlayersReady={numberPlayersReady} /> : <Navigate to='/play'/>}/>
           <Route exact path='/play' element={(!voteMeme) ? <Play lastJsonMessage={lastJsonMessage} sendJsonMessage={sendJsonMessage} src={src}/> : <Navigate to='/vote' /> } />
-          <Route exact path='/vote' element={ (!showScore) ? <Vote voteMemeObj={voteMemeObj} lastJsonMessage={lastJsonMessage} /> : <Leaderboard /> } />
+          <Route exact path='/vote' element={ (!showScore) ? <Vote voteMemeObj={voteMemeObj} lastJsonMessage={lastJsonMessage} sendJsonMessage={sendJsonMessage} /> : <Leaderboard scoreArray={scoreArray} /> } />
           <Route path="*" element={<Error />} />
         </Routes>
         </BrowserRouter>

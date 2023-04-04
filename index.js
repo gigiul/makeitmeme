@@ -12,6 +12,9 @@ var playersReady = 0;
 const skipBaseLimits = {};
 const ready = {};
 var clientID;
+var countVote = {};
+
+
 
 //countdowns
 var lobbyCountdown = 3;
@@ -106,8 +109,18 @@ wss.on('connection', function connection(ws) {
                     }
                     break;
                 case "UPVOTE":
+                    if (!countVote[dataParsed.payload.clientID]){
+                        countVote[dataParsed.payload.clientID] = 0;
+                    }
+                    countVote[dataParsed.payload.clientID] += 1;
+                    console.log("countVote", countVote)
                     break;
                 case "DOWNVOTE":
+                    if (!countVote[dataParsed.payload.clientID]){
+                        countVote[dataParsed.payload.clientID] = 0;
+                    }
+                    countVote[dataParsed.payload.clientID] -= 1;
+                    console.log("countVote", countVote)
                     break;
                 default:
                     console.log("Unknown message type");
@@ -129,6 +142,7 @@ wss.on('connection', function connection(ws) {
         sendWss("NUMBER_PLAYERS_READY", playersReady);
     });
 });
+
 
 function addClientID(clientID, payload) {
     payload.clientID = clientID;
@@ -161,7 +175,6 @@ function sendRandomBase(wss) {
 function initCountdown(text, time) {
     let counter = time;
     const intervalId = setInterval(() => {
-        console.log(counter)
         counter--;
         sendWss(text, counter);
         if (counter === 0) {
@@ -187,12 +200,32 @@ function voteMeme() {
         }
     }, 11000);
     setTimeout(() => {
-        sendWss("SCORE", "SCORE");
+        let data = [];
+        data = calculateScore(readData);
+        data.sort((a,b) => b.score - a.score)
+        console.log("data", data)
+        sendWss("SCORE", data );
     }, 11000 * (readData.length));
 
 numberMemeReceived = 0;
 memeReceived = [];
 cleanReceivedMeme();
+}
+
+function calculateScore(readData) {
+    let newData = [];
+    newData = readData;
+    for (let i = 0; i < newData.length; i++) {
+        Object.keys(countVote).forEach(function(key, index) {
+            console.log(key, countVote[key]);
+            console.log(newData[i].clientID)
+            if (parseInt(key) === newData[i].clientID) {
+                newData[i].score = countVote[key];
+            }
+            console.log("newData", newData)
+          });
+    }
+    return newData;
 }
 
 function cleanReceivedMeme() {
