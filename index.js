@@ -188,7 +188,7 @@ function voteMeme() {
     }, 11000);
     setTimeout(() => {
         sendWss("SCORE", "SCORE");
-    }, 110000 * readData.length);
+    }, 11000 * (readData.length));
 
 numberMemeReceived = 0;
 memeReceived = [];

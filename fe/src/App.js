@@ -34,7 +34,7 @@ function App() {
  */  });
 
   useEffect(() => {
-    console.log(lastJsonMessage)
+    console.log("lastJsonMessage", lastJsonMessage)
     switch (lastJsonMessage?.type) {
       case "START_GAME":
         setGameStart(true);

@@ -25,11 +25,9 @@ const Vote = ({ voteMemeObj, lastJsonMessage }) => {
         console.log("voteMemeObj", voteMemeObj)
     }, [voteMemeObj])
 
-    console.log("position", voteMemeObj?.textArray[0]?.x, voteMemeObj?.textArray[0]?.y)
-
     return (
         <div className='h-screen bg-[#373737]'>
-            <div className='relative flex flex-col justify-center items-center py-8'>
+            <div className='relative flex flex-col justify-center items-center h-screen py-8'>
                 <div className='w-[75%] bg-[#3871F6] bg-opacity-20 py-2 rounded-t-lg border-2  border-black z-10'>
                     <div className='flex items-center justify-between md:mx-16 mx-4'>
                         <p className='font-semibold italic text-2xl drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] tracking-wide text-white'>Vote: {number}/10</p>
@@ -45,31 +43,22 @@ const Vote = ({ voteMemeObj, lastJsonMessage }) => {
                 </div>
             </div>
             {
-                voteMemeObj?.textArray.map(function (item, i) {
+                voteMemeObj?.textArray?.map(function (item, i) {
+                    console.log("item value", item)
                     return (
-                        <Draggable className=' z-20'
+                        <Draggable key={i} className=' z-20'
                             positionOffset={{ x: '-50%', y: '-50%' }}
-                            position={{ x: item[i]?.x, y: item[i]?.y }}
+                            position={{ x: item?.x, y: item?.y }}
                         >
                             <div className='absolute top-[50%] left-[50%] uppercase drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] text-white md:text-3xl text-xl font-bold  flex justify-center items-center z-20 ' style={{ '-webkit-text-stroke': '1px black' }}>
                                 <div className='relative'>
-                                    <textarea placeholder='text' value={item[i]?.text} spellCheck='false' style={{ resize: 'none' }} className='bg-transparent md:max-w-[600px] max-w-[300px] text-center overflow-hidden' />
+                                    <textarea placeholder='text' value={item?.text} spellCheck='false' style={{ resize: 'none' }} className='bg-transparent md:max-w-[600px] max-w-[300px] text-center overflow-hidden' />
                                 </div>
                             </div>
                         </Draggable>
                     )
                 })
             }
-            <Draggable className=' z-20'
-                positionOffset={{ x: '-50%', y: '-50%' }}
-                position={{ x: voteMemeObj?.textArray[0]?.x, y: voteMemeObj?.textArray[0]?.y }}
-            >
-                <div className='absolute top-[50%] left-[50%] uppercase drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] text-white md:text-3xl text-xl font-bold  flex justify-center items-center z-20 ' style={{ '-webkit-text-stroke': '1px black' }}>
-                    <div className='relative'>
-                        <textarea placeholder='text' value={voteMemeObj?.textArray[0]?.text} spellCheck='false' style={{ resize: 'none' }} className='bg-transparent md:max-w-[600px] max-w-[300px] text-center overflow-hidden' />
-                    </div>
-                </div>
-            </Draggable>
         </div>
     )
 }
