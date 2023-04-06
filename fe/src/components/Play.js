@@ -78,7 +78,7 @@ const Play = ({ lastJsonMessage, sendJsonMessage, src }) => {
                                 positionOffset={{ x: '-50%', y: '-50%' }}
                                 position={item}
                                 onDrag={(e, data) => handleDrag(e, data, item, i)}>
-                                <div className='absolute top-[50%] left-[50%] uppercase drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] text-white md:text-3xl text-xl font-bold  flex justify-center items-center z-20 ' style={{ '-webkit-text-stroke': '1px black' }}>
+                                <div className='absolute top-[50%] left-[50%] uppercase drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] text-white md:text-2xl text-xl font-bold  flex justify-center items-center z-20 ' style={{ '-webkit-text-stroke': '1px black' }}>
                                     <div className='relative'> 
                                         <textarea onChange={(e) => handleText(e, i, item)} placeholder='text' value={item.text} spellCheck='false' style={{ resize: 'none' }} className={` ${item.text ?  'bg-transparent' : 'bg-black/50' } md:max-w-[600px] max-w-[300px] text-center overflow-hidden`} />
                                         <button onClick={() => handleDeleteText(i)} className=' absolute top-[-1rem] right-[-1rem] rounded-full p-2 bg-red-600/10 hover:bg-red-600 '>
