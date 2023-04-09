@@ -19,10 +19,10 @@ var usernames = {};
 
 //countdowns
 var lobbyCountdown = 3;
-var gameCountdown = 30;
-var voteCountdown = 10;
+var gameCountdown = 40;
+var voteCountdown = 15;
 
-var skipNumber = 50;
+var skipNumber = 5;
 
 
 wss.on('connection', function connection(ws) {
