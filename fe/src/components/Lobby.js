@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import './css/Lobby.css'
 
 const Lobby = ({ sendJsonMessage, gameStart, gameStarting, numberPlayersReady }) => {
 
     const [ready, setReady] = useState(false)
+    const [username, setUsername] = useState("")
 
-    function handleReady() {
+    function handleReady(e) {
+        e.preventDefault();
         if (ready) {
             setReady(false)
             sendJsonMessage({ type: "NOT_READY" })
         } else {
             setReady(true)
-            sendJsonMessage({ type: "READY" })
+            sendJsonMessage({ type: "READY", payload: username })
         }
     }
 
@@ -25,14 +27,14 @@ const Lobby = ({ sendJsonMessage, gameStart, gameStarting, numberPlayersReady })
                 </div>
             </div>
             <div className='flex flex-col text-center items-center justify-center h-[10rem] mt-16'>
-                <div className='flex text-center mx-8 items-center max-w-[35%] w-full gap-4'>
-                    <input type ="text" placeholder='username' className='flex items-center justify-center rounded-lg border-2 border-b-4 border-black px-8 py-5 cursor-text w-full'></input>
+                <form className='flex text-center mx-8 items-center max-w-[35%] w-full gap-4' onSubmit={(e) => handleReady(e)}>
+                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder='username' className='flex items-center justify-center rounded-lg border-2 border-b-4 border-black px-8 py-5 cursor-text w-full'></input>
                     <div className='flex gap-4 bg-black/10'>
                         {
-                            !ready ? <div className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-2 cursor-pointer hover:-translate-y-1 transition-transform' onClick={() => handleReady()}><span className=' drop-shadow-[0_2.5px_1.9px_rgba(0,0,0,1)] tracking-wide text-white'>Not Ready</span></div> : <div className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-5 cursor-pointer hover:-translate-y-1 transition-transform' onClick={() => handleReady()}><span className=' drop-shadow-[0_2.5px_1.9px_rgba(0,0,0,1)] tracking-wide text-white'>Ready</span></div>
+                            !ready ? <button type='submit' className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-2 cursor-pointer hover:-translate-y-1 transition-transform'><span className=' drop-shadow-[0_2.5px_1.9px_rgba(0,0,0,1)] tracking-wide text-white '>Not Ready</span></button> : <button className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-5 cursor-pointer hover:-translate-y-1 transition-transform'><span className=' drop-shadow-[0_2.5px_1.9px_rgba(0,0,0,1)] tracking-wide text-white'>Ready</span></button>
                         }
                     </div>
-                </div>
+                </form>
                 <div className='mt-4'>
                     {(gameStarting > 0 && gameStarting != 1) ?
                         (<h1 className='drop-shadow-[0_2.5px_1.9px_rgba(0,0,0,1)] tracking-wide text-white'>Game is starting in <span>{gameStarting}</span></h1>)

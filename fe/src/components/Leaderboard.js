@@ -1,25 +1,31 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import Draggable from 'react-draggable';
 import domtoimage from 'dom-to-image';
 
 const Leaderboard = ({ scoreArray }) => {
 
+    const [hideButton, setHideButton] = useState(false)
+
     var node;
 
     function takeScreenshot(i) {
         node = document.getElementById(i);
-            domtoimage.toPng(node)
-                .then(function (dataUrl) {
-                    var img = new Image();
-                    img.src = dataUrl;
-                    img.download = "Image.png"; //File name Here
-                    img.click();
-                    console.log(img)
-                })
-                .catch(function (error) {
-                    console.error('oops, something went wrong!', error);
-                });
+        setHideButton(true)
+        domtoimage.toPng(node)
+            .then(function (dataUrl) {
+                var link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = 'Image.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setHideButton(false)
+            })
+            .catch(function (error) {
+                setHideButton(false)
+                console.error('oops, something went wrong!', error);
+            });
     }
 
     const navigate = useNavigate();
@@ -68,11 +74,14 @@ const Leaderboard = ({ scoreArray }) => {
                                                         )
                                                     })
                                                 }
-                                            <div className='absolute bottom-0 right-0' onClick={() => takeScreenshot(i)}>
-                                                <img src="/download_icon.png" alt="download" className='w-10 h-10' />
+                                                {
+                                                    hideButton ? (null) : (<div className='absolute bottom-0 right-0' onClick={() => takeScreenshot(i)}>
+                                                        <img src="/download_icon.png" alt="download" className='w-10 h-10' />
+                                                    </div>)
+                                                }
+
                                             </div>
-                                            </div>
-                                            
+
 
                                         </div>
                                     )

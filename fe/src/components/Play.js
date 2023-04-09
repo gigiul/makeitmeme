@@ -8,6 +8,7 @@ const Play = ({ lastJsonMessage, sendJsonMessage, src }) => {
     const [countdown, setCountdown] = useState()
     const [notSend, setNotSend] = useState(true)
     const [textArray, setTextArray] = useState([{ text: "", x: 0, y: 0 }])
+    const [sent, setSent] = useState(false)
 
     useEffect(() => {
         switch (lastJsonMessage?.type) {
@@ -36,6 +37,7 @@ const Play = ({ lastJsonMessage, sendJsonMessage, src }) => {
         console.log("here")
         sendJsonMessage({ type: "MEME_DONE", payload: { srcMeme, textArray } })
         setNotSend(false)
+        setSent(true)
     }
 
     function textAreaAdjust(element) {
@@ -79,8 +81,8 @@ const Play = ({ lastJsonMessage, sendJsonMessage, src }) => {
                                 position={item}
                                 onDrag={(e, data) => handleDrag(e, data, item, i)}>
                                 <div className='absolute top-[50%] left-[50%] uppercase drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] text-white md:text-2xl text-xl font-bold  flex justify-center items-center z-20 ' style={{ '-webkit-text-stroke': '1px black' }}>
-                                    <div className='relative'> 
-                                        <textarea onChange={(e) => handleText(e, i, item)} placeholder='text' value={item.text} spellCheck='false' style={{ resize: 'none' }} className={` ${item.text ?  'bg-transparent' : 'bg-black/50' } md:max-w-[600px] max-w-[300px] text-center overflow-hidden`} />
+                                    <div className='relative'>
+                                        <textarea onChange={(e) => handleText(e, i, item)} placeholder='text' value={item.text} spellCheck='false' style={{ resize: 'none' }} className={` ${item.text ? 'bg-transparent' : 'bg-black/50'} md:max-w-[500px] max-w-[200px] text-center overflow-hidden`} />
                                         <button onClick={() => handleDeleteText(i)} className=' absolute top-[-1rem] right-[-1rem] rounded-full p-2 bg-red-600/10 hover:bg-red-600 '>
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -101,8 +103,12 @@ const Play = ({ lastJsonMessage, sendJsonMessage, src }) => {
                     <img src={srcMeme} alt="meme" className='md:w-[500px] md:h-[375px] w-[400px] h-[300px] drop-shadow-2xl rounded-md border-2 border-black border-opacity-30' />
                     <div className='mt-4 md:hidden rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-2 cursor-pointer hover:-translate-y-1 transition-transform' onClick={() => createNewTextField()}><span className=' drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] tracking-wide text-white' style={{ '-webkit-text-stroke': '0.2px black' }}>New Text</span></div>
                     <div className='mt-4 flex gap-4 justify-center w-full'>
-                        <div className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-2 cursor-pointer hover:-translate-y-1 transition-transform' onClick={() => handleSkip()}><span className=' drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] tracking-wide text-white' style={{ '-webkit-text-stroke': '0.2px black' }}>Skip</span></div>
-                        <div className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-2 cursor-pointer hover:-translate-y-1 transition-transform' onClick={() => handleSend()}><span className=' drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] tracking-wide text-white' style={{ '-webkit-text-stroke': '0.2px black' }}>Send</span></div>
+                        {!sent ? (<>
+
+                            <div className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-2 cursor-pointer hover:-translate-y-1 transition-transform' onClick={() => handleSkip()}><span className=' drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] tracking-wide text-white uppercase' style={{ '-webkit-text-stroke': '0.2px black' }}>Skip</span></div>
+                            <div className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-[#E9C543] border-black px-8 py-2 cursor-pointer hover:-translate-y-1 transition-transform' onClick={() => handleSend()}><span className=' drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] tracking-wide text-white uppercase' style={{ '-webkit-text-stroke': '0.2px black' }}>Send</span></div>
+                        </>) : (null)}
+                        {!sent ? (null) : (<div className='flex items-center justify-center rounded-lg border-2 border-b-4 bg-gradient-to-br from-[#9E9E9E] via-[#EFEFEF] to-[#9E9E9E] cursor-not-allowed border-black px-8 py-2'><span className=' drop-shadow-[0_2px_1.2px_rgba(0,0,0,90)] tracking-wide text-white text-xl font-semibold' style={{ '-webkit-text-stroke': '0.2px black' }}>SENT</span></div>)}
                     </div>
                 </div>
             </div>

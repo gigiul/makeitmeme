@@ -13,6 +13,7 @@ const skipBaseLimits = {};
 const ready = {};
 var clientID;
 var countVote = {};
+var usernames = {};
 
 
 
@@ -44,6 +45,9 @@ wss.on('connection', function connection(ws) {
             switch (dataParsed.type) {
                 case "READY":
                     clientID = ws._socket.remotePort;
+                    console.log("payload value:", dataParsed.payload)
+                    usernames[clientID] = dataParsed.payload;
+                    console.log("usernames", usernames)
                     if (!ready[clientID]) {
                         ready[clientID] = true;
                         playersReady++;
@@ -109,14 +113,15 @@ wss.on('connection', function connection(ws) {
                     }
                     break;
                 case "UPVOTE":
-                    if (!countVote[dataParsed.payload.clientID]){
+                    console.log("dataParsse ClientID", dataParsed.payload.clientID)
+                    if (!countVote[dataParsed.payload.clientID]) {
                         countVote[dataParsed.payload.clientID] = 0;
                     }
                     countVote[dataParsed.payload.clientID] += 1;
                     console.log("countVote", countVote)
                     break;
                 case "DOWNVOTE":
-                    if (!countVote[dataParsed.payload.clientID]){
+                    if (!countVote[dataParsed.payload.clientID]) {
                         countVote[dataParsed.payload.clientID] = 0;
                     }
                     countVote[dataParsed.payload.clientID] -= 1;
@@ -145,8 +150,17 @@ wss.on('connection', function connection(ws) {
 
 
 function addClientID(clientID, payload) {
-    payload.clientID = clientID;
-    return payload;
+    for (const [key, value] of Object.entries(usernames)) {
+        if (key == clientID) {
+            payload.clientID = value;
+        }
+    }
+    if (payload.clientID != null) {
+        return payload;
+    } else {
+        payload.clientID = clientID;
+        return payload;
+    }
 }
 
 function skipBase(ws) {
@@ -202,28 +216,27 @@ function voteMeme() {
     setTimeout(() => {
         let data = [];
         data = calculateScore(readData);
-        data.sort((a,b) => b.score - a.score)
+        data.sort((a, b) => b.score - a.score)
         console.log("data", data)
-        sendWss("SCORE", data );
+        sendWss("SCORE", data);
     }, 11000 * (readData.length));
 
-numberMemeReceived = 0;
-memeReceived = [];
-cleanReceivedMeme();
+    numberMemeReceived = 0;
+    memeReceived = [];
+    cleanReceivedMeme();
 }
 
 function calculateScore(readData) {
     let newData = [];
     newData = readData;
     for (let i = 0; i < newData.length; i++) {
-        Object.keys(countVote).forEach(function(key, index) {
-            console.log(key, countVote[key]);
-            console.log(newData[i].clientID)
-            if (parseInt(key) === newData[i].clientID) {
-                newData[i].score = countVote[key];
+        let score = 0;
+        for (const [key, value] of Object.entries(countVote)) {
+            if (key == newData[i].clientID) {
+                score += value;
             }
-            console.log("newData", newData)
-          });
+        }
+        newData[i].score = score;
     }
     return newData;
 }
